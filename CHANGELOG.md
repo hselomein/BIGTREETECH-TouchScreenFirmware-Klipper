@@ -8,7 +8,7 @@ for the full version history.
 
 ---
 
-## [Unreleased] — post-merge additions
+## [v28.x-klipper.2] — 2026-04-24
 
 ### Added
 - `klipper/klipper_tft.cfg` — remote host print control protocol:
