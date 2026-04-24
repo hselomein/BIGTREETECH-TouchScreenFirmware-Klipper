@@ -56,6 +56,11 @@ Important information related to BigTreeTech's TFT touchscreen 3D printer contro
     - [Configuration Changes](#configuration-changes)
     - [Implemented Features](#implemented-features)
     - [Menu System for Macros](#menu-system-for-macros)
+  - [Klipper Support](#klipper-support)
+    - [Overview](#overview-1)
+    - [Required Files](#required-files)
+    - [Wiring and Serial Port Configuration](#wiring-and-serial-port-configuration)
+    - [Layer Tracking — Slicer Setup](#layer-tracking--slicer-setup)
   - [Setup of BTT TFT35 E3 V3 with MKS SGEN L Mainboards](#setup-of-btt-tft35-e3-v3-with-mks-sgen-l-mainboards)
     - [Connections](#connections)
     - [Firmware](#firmware)
@@ -680,6 +685,82 @@ Add the following line to your `config.g` to enable the screen: `M575 P1 S2 B576
 - Thumbnail and menu system support for onboard G-codes
 - Load/unload menu
 - PID tune menu
+
+### Klipper Support
+
+#### Overview
+
+This fork adds native Klipper firmware detection and a compatible Touch Mode interface. When the TFT connects to Klipper it sends `M115`, reads `FIRMWARE_NAME:Klipper` from the response, and switches to a Klipper-aware operating mode: EEPROM operations are stubbed out, `M420 S1` is suppressed at boot (load your mesh in `START_PRINT` instead), and temperature/position reporting uses Klipper's response format.
+
+All standard TFT Touch Mode menus — heat, move, fan, leveling, print, babystep — work without modification.
+
+`klipper_tft.cfg` also implements the BTT host-action protocol so that prints started from Klipper, Mainsail, or Fluidd are visible and controllable from the TFT touch screen:
+
+- **Print start** — TFT automatically switches to the printing screen when a Klipper print starts
+- **Progress** — byte-position progress bar updated every 3 s
+- **Remaining time** — time estimate updated every 3 s based on elapsed time and file progress
+- **Layer counter** — updated when the slicer emits `SET_PRINT_STATS_INFO` at each layer change (PrusaSlicer, Orca, SuperSlicer supported natively; Cura via post-processor)
+- **Pause / Resume / Cancel buttons** — TFT touch buttons work when in remote-host mode; the `M118` macro intercepts the TFT's remote-action commands and calls `PAUSE` / `RESUME` / `CANCEL_PRINT` in Klipper
+
+#### Required Files
+
+Two files are needed to use the TFT with Klipper:
+
+| File | Location | Purpose |
+|---|---|---|
+| `config_klipper.ini` | [`klipper/config_klipper.ini`](klipper/config_klipper.ini) | Pre-configured TFT SD card config. Copy to SD card root as `config.ini`. |
+| `klipper_tft.cfg` | [`klipper/klipper_tft.cfg`](klipper/klipper_tft.cfg) | Klipper macros: Marlin G-code translation, M115 firmware detection, and the remote host print-control protocol (progress, time, layers, pause/resume/cancel). Add `[include klipper_tft.cfg]` to `printer.cfg`. |
+
+#### Wiring and Serial Port Configuration
+
+The TFT communicates with Klipper over the Pi's GPIO UART (e.g. `/dev/ttyAMA0`), not the MCU board's serial port. Which physical TFT port you wire to the Pi is configurable via `mainboard_port` in `config.ini` — you do not need to use P1.
+
+**Production wiring** (recommended): wire TFT P1 directly to the Pi GPIO UART. The MCU board (e.g. SKR Mini E3) connects to the Pi over USB only.
+
+```ini
+serial_port:P1:8    # 250000 baud on P1
+mainboard_port:1
+```
+
+**Testing wiring** (no disassembly): if a supplementary port (P2/P3) is already wired to the Pi from a previous OctoPrint setup, point `mainboard_port` at that port instead. Set P1 to `0` (off) to silence the MCU board.
+
+```ini
+serial_port:P1:0 P2:0 P3:8    # P1 off, P3 at 250000 baud
+mainboard_port:3
+```
+
+For full details on `mainboard_port` — including how it works with all firmware types and a quick-reference table — see [`klipper/mainboard_port.md`](klipper/mainboard_port.md).
+
+#### Layer Tracking — Slicer Setup
+
+The layer counter on the TFT requires the slicer to emit `SET_PRINT_STATS_INFO` calls. Everything else works without this step.
+
+**PrusaSlicer / SuperSlicer**
+
+*Printer Settings → Custom G-code → Start G-code* — append:
+```
+SET_PRINT_STATS_INFO TOTAL_LAYER=[total_layer_count]
+```
+*Printer Settings → Custom G-code → Before layer change G-code* — add:
+```
+SET_PRINT_STATS_INFO CURRENT_LAYER=[current_layer]
+```
+
+**Orca Slicer / Bambu Studio**
+
+Same fields but uses `{curly_braces}` instead of `[square_brackets]`:
+```
+SET_PRINT_STATS_INFO TOTAL_LAYER={total_layer_count}
+SET_PRINT_STATS_INFO CURRENT_LAYER={current_layer}
+```
+
+**Cura**
+
+Cura has no native layer-change G-code field. Use the *Search and Replace* post-processing script (Extensions → Post Processing) with regex enabled:
+- Search: `;LAYER:(\d+)`
+- Replace: `;LAYER:\1\nSET_PRINT_STATS_INFO CURRENT_LAYER=\1`
+
+For full documentation on the remote host protocol, polling behaviour, and debugging see [`klipper/remote_host.md`](klipper/remote_host.md).
 
 ### Setup of BTT TFT35 E3 V3 with MKS SGEN L Mainboards
 
