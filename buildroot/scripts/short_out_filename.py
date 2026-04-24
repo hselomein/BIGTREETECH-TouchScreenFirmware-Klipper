@@ -10,7 +10,9 @@ def make_short_file(source, target, env):
     src_file_path = os.path.join(repo_path, build_dir, filename)
     build_flags = env.ParseFlags(env['BUILD_FLAGS'])
     flags = {k: v for (k, v) in build_flags.get("CPPDEFINES")}
-    filename_short = flags.get("HARDWARE_SHORT") + flags.get("SOFTWARE_VERSION_SHORT") + ".new"
+    version_short = flags.get("SOFTWARE_VERSION_SHORT")
+    version_short = version_short.split("-")[0] if version_short and "-" in version_short else version_short
+    filename_short = flags.get("HARDWARE_SHORT") + version_short + ".new"
     target_file_path = os.path.join(repo_path, build_dir, filename_short)
     shutil.copyfile(src_file_path, target_file_path)
     print("Done.")
