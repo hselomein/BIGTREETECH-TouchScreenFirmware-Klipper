@@ -5,6 +5,7 @@
 
 //-----------------------------General Settings
 #define CONFIG_SERIAL_PORT           "serial_port:"
+#define CONFIG_MAINBOARD_PORT        "mainboard_port:"
 #define CONFIG_TX_SLOTS              "tx_slots:"
 #define CONFIG_ADVANCED_OK           "advanced_ok:"
 #define CONFIG_COMMAND_CHECKSUM      "command_checksum:"
@@ -440,6 +441,10 @@ static void parseConfigKey(uint16_t index)
       if (key_seen("P2:")) SET_VALID_INT_VALUE(infoSettings.serial_port[1], 0, BAUDRATE_COUNT - 1);
       if (key_seen("P3:")) SET_VALID_INT_VALUE(infoSettings.serial_port[2], 0, BAUDRATE_COUNT - 1);
       if (key_seen("P4:")) SET_VALID_INT_VALUE(infoSettings.serial_port[3], 0, BAUDRATE_COUNT - 1);
+      break;
+
+    case C_INDEX_MAINBOARD_PORT:
+      SET_VALID_INT_VALUE(infoSettings.mainboard_port, 1, MAX_SERIAL_PORT_COUNT);
       break;
 
     case C_INDEX_TX_SLOTS:

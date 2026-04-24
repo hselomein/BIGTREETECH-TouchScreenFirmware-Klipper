@@ -13,7 +13,7 @@ extern "C" {
 
 #define CONFIG_SUPPPORT       20240203  // (YYYYMMDD) change if any keyword(s) in Configuration.h is added, removed or changed.
                                         // This number should match CONFIGURATION_H_VERSION in Configuration.h
-#define CONFIG_FLASH_SIGN     20240203  // (YYYYMMDD) change if any keyword(s) in config.ini is added or removed
+#define CONFIG_FLASH_SIGN     20260424  // (YYYYMMDD) change if any keyword(s) in config.ini is added or removed
 #define LANGUAGE_FLASH_SIGN   20240203  // (YYYYMMDD) change if any keyword(s) in language pack is added or removed
 #define ICON_FLASH_SIGN       20230821  // (YYYYMMDD) change if any icon(s) is added or removed
 #define FONT_FLASH_SIGN       20230821  // (YYYYMMDD) change if fonts require updating
@@ -170,6 +170,7 @@ typedef struct
 
   // General Settings
   uint8_t  serial_port[MAX_SERIAL_PORT_COUNT];
+  uint8_t  mainboard_port;  // 1=P1 (default), 2=P2, 3=P3, 4=P4
   uint8_t  tx_slots;
   uint8_t  general_settings;  // listening mode / advanced ok / emulated M600 /
                               // emulated M109-M190 / event led / file comment parsing toggles (Bit Values)

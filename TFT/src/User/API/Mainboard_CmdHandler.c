@@ -88,7 +88,7 @@ static void commonStoreCmd(GCODE_QUEUE * pQueue, const char * format, va_list va
 {
   vsnprintf(pQueue->queue[pQueue->index_w].gcode, CMD_MAX_SIZE, format, va);
 
-  pQueue->queue[pQueue->index_w].port_index = PORT_1;  // port index for SERIAL_PORT
+  pQueue->queue[pQueue->index_w].port_index = (SERIAL_PORT_INDEX)(infoSettings.mainboard_port - 1);
   pQueue->index_w = (pQueue->index_w + 1) % CMD_QUEUE_SIZE;
   pQueue->count++;
 }
@@ -230,7 +230,7 @@ static inline bool getCmd(void)
 
   cmd_len = strlen(cmd_ptr);                                     // length of gcode
 
-  return (cmd_port_index == PORT_1);  // if gcode is originated by TFT (SERIAL_PORT), return "true"
+  return (cmd_port_index == (SERIAL_PORT_INDEX)(infoSettings.mainboard_port - 1));  // if gcode is originated by TFT, return "true"
 }
 
 static inline void getCmdFromCmdRetryInfo(void)
@@ -276,7 +276,7 @@ static bool sendCmd(bool purge, bool avoidTerminal)
 
     UPD_TX_KPIS(cmd_len);  // debug monitoring KPI
 
-    Serial_Put(SERIAL_PORT, cmd_ptr);
+    Serial_Put(serialPort[infoSettings.mainboard_port - 1].port, cmd_ptr);
 
     setCurrentAckSrc(cmd_port_index);
   }

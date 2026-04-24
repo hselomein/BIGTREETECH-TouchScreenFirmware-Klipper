@@ -142,6 +142,7 @@ void initSettings(void)
   {
     infoSettings.serial_port[i]       = default_serial_port[i];
   }
+  infoSettings.mainboard_port         = 1;  // default: P1
 
   for (int i = 0; i < MAX_HEATER_COUNT; i++)
   {
@@ -263,6 +264,12 @@ void setupMachine(FW_TYPE fwType)
   }
   else if (infoMachineSettings.firmwareType == FW_SMOOTHIEWARE)  // Smoothieware does not report detailed M115 capabilities
   { // set only the values that differ from the ones initialized in initMachineSettings() function
+    #if BED_LEVELING_TYPE == 1  // if auto-detect is enabled
+      infoMachineSettings.leveling = BL_ABL;
+    #endif
+  }
+  else if (infoMachineSettings.firmwareType == FW_KLIPPER)
+  {
     #if BED_LEVELING_TYPE == 1  // if auto-detect is enabled
       infoMachineSettings.leveling = BL_ABL;
     #endif

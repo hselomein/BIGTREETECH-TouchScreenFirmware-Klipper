@@ -206,8 +206,9 @@ void Serial_GetFromUART(void)
   // scan all the supplementary serial ports
   for (SERIAL_PORT_INDEX portIndex = PORT_2; portIndex < SERIAL_PORT_COUNT; portIndex++)
   {
-    // retrieve data only if serial port is enabled
+    // retrieve data only if serial port is enabled and not configured as the mainboard port
     if (infoSettings.serial_port[portIndex] > 0
+      && portIndex != (SERIAL_PORT_INDEX)(infoSettings.mainboard_port - 1)
       #ifdef SERIAL_DEBUG_PORT
         && serialPort[portIndex].port != SERIAL_DEBUG_PORT  // do not forward data to serial debug port
       #endif

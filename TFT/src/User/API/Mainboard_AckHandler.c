@@ -360,7 +360,7 @@ static inline void hostActionCommands(void)
 
 void parseAck(void)
 {
-  while (Serial_DataAvailableRX(SERIAL_PORT) && (ack_len = Serial_Get(SERIAL_PORT, ack_cache, ACK_CACHE_SIZE)) != 0)  // if some data have been retrieved
+  while (Serial_DataAvailableRX(serialPort[infoSettings.mainboard_port - 1].port) && (ack_len = Serial_Get(serialPort[infoSettings.mainboard_port - 1].port, ack_cache, ACK_CACHE_SIZE)) != 0)  // if some data have been retrieved
   {
     UPD_RX_KPIS(ack_len);  // debug monitoring KPI
 
@@ -1267,6 +1267,8 @@ void parseAck(void)
         setupMachine(FW_REPRAPFW);
       else if (ack_continue_seen("Smoothieware"))
         setupMachine(FW_SMOOTHIEWARE);
+      else if (ack_continue_seen("Klipper"))
+        setupMachine(FW_KLIPPER);
       else
         setupMachine(FW_UNKNOWN);
 
@@ -1456,7 +1458,7 @@ void parseAck(void)
       terminalCache(ack_cache, ack_len, ack_port_index, SRC_TERMINAL_ACK);
 
     #ifdef SERIAL_PORT_2
-      if (ack_port_index == PORT_1)
+      if (ack_port_index == (SERIAL_PORT_INDEX)(infoSettings.mainboard_port - 1))
       {
         if (infoHost.tx_count == 0 && !ack_starts_with("ok"))
         { // if the ACK message is not related to a gcode originated by the TFT and it is not "ok", it is a spontaneous
@@ -1472,7 +1474,7 @@ void parseAck(void)
         // if no pending gcode (all "ok" have been received), reset ACK port index to avoid wrong relaying (in case no
         // more commands will be sent by Mainboard_CmdHandler.c) of any successive spontaneous ACK message
         if (infoHost.tx_count == 0)
-          ack_port_index = PORT_1;
+          ack_port_index = (SERIAL_PORT_INDEX)(infoSettings.mainboard_port - 1);
       }
     #endif
   }
